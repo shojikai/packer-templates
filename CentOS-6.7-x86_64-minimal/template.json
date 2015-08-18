@@ -1,0 +1,78 @@
+{
+  "variables": {
+    "os": "CentOS",
+    "version": "6.7",
+    "arch": "x86_64",
+    "iso_basename": "CentOS-6.7-x86_64-minimal",
+    "sha1": "2ed5ea551dffc3e4b82847b3cee1f6cd748e8071",
+    "atlas_username": "shojikai",
+    "atlas_name": "centos-67"
+  },
+  "push": {
+    "name": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+    "vcs": true
+  },
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo 'vagrant'|sudo -S sh '{{.Path}}'",
+      "override": {
+        "virtualbox-iso": {
+          "scripts": [
+            "scripts/base.sh",
+            "scripts/vagrant.sh",
+            "scripts/virtualbox.sh",
+            "scripts/cleanup.sh"
+          ]
+        }
+      }
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "override": {
+        "virtualbox": {
+          "output": "{{user `iso_basename`}}.box"
+        }
+      }
+    },
+    {
+      "type": "atlas",
+      "only": ["virtualbox-iso"],
+      "artifact": "{{user `atlas_username`}}/{{user `atlas_name`}}",
+      "artifact_type": "vagrant.box",
+      "metadata": {
+        "provider": "virtualbox",
+        "version": "0.0.1"
+      }
+    }
+  ],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "boot_wait": "10s",
+      "disk_size": 8192,
+      "guest_os_type": "RedHat_64",
+      "http_directory": "http",
+      "iso_checksum": "{{user `sha1`}}",
+      "iso_checksum_type": "sha1",
+      "iso_url": "http://ftp.iij.ad.jp/pub/linux/centos/{{user `version`}}/isos/{{user `arch`}}/{{user `iso_basename`}}.iso",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_port": 22,
+      "ssh_pty": true,
+      "ssh_wait_timeout": "10000s",
+      "shutdown_command": "echo '/sbin/halt -h -p' > /tmp/shutdown.sh; echo 'vagrant'|sudo -S sh '/tmp/shutdown.sh'",
+      "guest_additions_path": "VBoxGuestAdditions_{{.Version}}.iso",
+      "virtualbox_version_file": ".vbox_version",
+      "vboxmanage": [
+        [ "modifyvm", "{{.Name}}", "--memory", "512" ],
+        [ "modifyvm", "{{.Name}}", "--cpus", "1" ]
+      ]
+    }
+  ]
+}

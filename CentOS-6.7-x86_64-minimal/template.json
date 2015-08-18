@@ -28,7 +28,7 @@
       }
     }
   ],
-  "post-processors": [
+  "post-processors": [[
     {
       "type": "vagrant",
       "override": {
@@ -47,7 +47,7 @@
         "version": "0.0.1"
       }
     }
-  ],
+  ]],
   "builders": [
     {
       "type": "virtualbox-iso",
